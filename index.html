@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EliteStocks TV | Luxury Cinema</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 1. LOGIN SCREEN -->
+    <section id="login-screen" class="screen flex-center">
+        <div class="login-card fade-in">
+            <div class="brand-logo">ELITESTOCKS <span>TV</span></div>
+            <p class="tagline">Enter your M3U URL to access your private library.</p>
+            <div class="input-field">
+                <i class="fa-solid fa-link"></i>
+                <input type="text" id="m3u-input" placeholder="Paste M3U URL here...">
+            </div>
+            <button onclick="handleLogin()" id="login-btn">Login to Experience</button>
+        </div>
+    </section>
+
+    <!-- 2. LUXURY LOADER -->
+    <section id="loader-screen" class="screen flex-center hidden">
+        <div class="loader-content">
+            <div class="shimmer-logo">ES</div>
+            <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+            <p id="loader-text">Syncing your library...</p>
+        </div>
+    </section>
+
+    <!-- 3. MAIN DASHBOARD -->
+    <section id="main-dashboard" class="screen hidden">
+        <header class="main-header">
+            <div class="header-left">
+                <div class="app-logo">EliteStocks <span>Watch</span></div>
+                <nav class="top-nav">
+                    <button class="nav-btn active" id="btn-live" onclick="setView('live')">LIVE TV</button>
+                    <button class="nav-btn" id="btn-movie" onclick="setView('movie')">MOVIES</button>
+                    <button class="nav-btn" id="btn-series" onclick="setView('series')">SERIES</button>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-wrapper">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="search-input" placeholder="Search..." onkeyup="handleSearch()">
+                </div>
+                <div class="profile-trigger" onclick="toggleProfile()"><i class="fa-solid fa-circle-user"></i></div>
+            </div>
+        </header>
+
+        <main class="content-area custom-scrollbar">
+            <div id="category-scroller" class="category-tags"></div>
+            <div id="main-grid" class="main-grid"></div>
+        </main>
+
+        <!-- Profile Modal -->
+        <div id="profile-modal" class="popup-modal hidden">
+            <div class="modal-glass profile-box scale-in">
+                <h3>Account Settings</h3>
+                <div class="info-row"><span>URL:</span> <small id="display-url">...</small></div>
+                <div class="info-row"><span>Status:</span> <span class="status-badge">Premium Active</span></div>
+                <div class="info-row"><span>Expiry:</span> <span id="display-expiry" class="expiry-text">Unlimited</span></div>
+                <button class="logout-btn" onclick="logout()">Logout Account</button>
+                <button class="close-btn-text" onclick="toggleProfile()">Back to Cinema</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. CINEMA POPUP PLAYER -->
+    <div id="player-modal" class="player-overlay hidden">
+        <div class="player-wrapper scale-in">
+            <div class="player-header">
+                <h2 id="modal-title">Channel Name</h2>
+                <button class="player-close" onclick="closePlayer()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="video-container">
+                <video id="video" controls autoplay></video>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
