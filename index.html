@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EliteStocks TV | Luxury Cinema</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EliteStocks TV | CEO Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -11,75 +11,119 @@
 </head>
 <body>
 
-    <!-- 1. LOGIN SCREEN -->
-    <section id="login-screen" class="screen flex-center">
-        <div class="login-card fade-in">
-            <div class="brand-logo">ELITESTOCKS <span>TV</span></div>
-            <p class="tagline">Enter your M3U URL to access your private library.</p>
-            <div class="input-field">
-                <i class="fa-solid fa-link"></i>
-                <input type="text" id="m3u-input" placeholder="Paste M3U URL here...">
-            </div>
-            <button onclick="handleLogin()" id="login-btn">Login to Experience</button>
-        </div>
+    <!-- 1. SPLASH -->
+    <section id="splash-screen" class="screen flex-center">
+        <h1 class="static-logo">EliteStocks TV</h1>
+        <button onclick="handleLogin()" class="pill-btn-white">Get Started</button>
     </section>
 
-    <!-- 2. LUXURY LOADER -->
+    <!-- 2. RAINBOW LOADER -->
     <section id="loader-screen" class="screen flex-center hidden">
-        <div class="loader-content">
-            <div class="shimmer-logo">ES</div>
-            <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
-            <p id="loader-text">Syncing your library...</p>
+        <div class="loader-wrap">
+            <h1 class="rainbow-logo">ESTV</h1>
+            <div class="master-bar"><div class="bar-fill" id="progress-fill"></div></div>
+            <p id="loader-text">ESTABLISHING LUXURY HANDSHAKE...</p>
         </div>
     </section>
 
-    <!-- 3. MAIN DASHBOARD -->
+    <!-- 3. DASHBOARD -->
     <section id="main-dashboard" class="screen hidden">
-        <header class="main-header">
-            <div class="header-left">
-                <div class="app-logo">EliteStocks <span>Watch</span></div>
-                <nav class="top-nav">
-                    <button class="nav-btn active" id="btn-live" onclick="setView('live')">LIVE TV</button>
-                    <button class="nav-btn" id="btn-movie" onclick="setView('movie')">MOVIES</button>
-                    <button class="nav-btn" id="btn-series" onclick="setView('series')">SERIES</button>
-                </nav>
-            </div>
-            <div class="header-right">
-                <div class="search-wrapper">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="search-input" placeholder="Search..." onkeyup="handleSearch()">
+        <header class="netflix-header">
+            <div class="header-top-row">
+                <div class="header-left">
+                    <button class="icon-btn" onclick="toggleSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    <nav class="netflix-nav">
+                        <button class="nav-link active" onclick="location.reload()">Home</button>
+                        <button class="nav-link" onclick="toggleCategoryPopup()">Categories</button>
+                    </nav>
                 </div>
-                <div class="profile-trigger" onclick="toggleProfile()"><i class="fa-solid fa-circle-user"></i></div>
+                <div class="header-right">
+                    <div class="brand-n">ESTV</div>
+                </div>
             </div>
+            <div class="header-divider"></div>
         </header>
 
-        <main class="content-area custom-scrollbar">
-            <div id="category-scroller" class="category-tags"></div>
-            <div id="main-grid" class="main-grid"></div>
+        <div id="search-bar-wrap" class="search-overlay hidden">
+            <div class="search-inner">
+                <input type="text" id="search-input" placeholder="Search for channels..." onkeyup="handleSearch()">
+                <button onclick="toggleSearch()" class="close-search-btn">✕</button>
+            </div>
+        </div>
+
+        <main class="netflix-content custom-scrollbar" id="scroll-area">
+            <!-- HERO SECTION -->
+            <section id="hero-section" class="hero-card">
+                <div class="hero-inner">
+                    <img id="hero-bg" src="" alt="">
+                    <div class="hero-vignette"></div>
+                    <div class="hero-details">
+                        <div class="hero-meta">
+                            <span class="meta-tag">CEO'S CHOICE</span>
+                            <span id="hero-genre">Action • Live</span>
+                            <span>2026</span>
+                            <span class="age-tag">PREMIUM</span>
+                        </div>
+                        <h1 id="hero-title">EliteStocks TV</h1>
+                        <p id="hero-desc">Luxury streaming curated by our CEO Anurag Pandey for an unmatched viewing experience.</p>
+                        <div class="hero-btns">
+                            <button id="hero-play-btn" class="pill-btn-white-hero"><i class="fa-solid fa-play"></i> Watch Now</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div id="rows-container" class="rows-stack"></div>
+            
+            <div id="infinite-loader" class="infinite-status">
+                <div class="dot-loader"><span></span><span></span><span></span></div>
+            </div>
         </main>
 
-        <!-- Profile Modal -->
-        <div id="profile-modal" class="popup-modal hidden">
-            <div class="modal-glass profile-box scale-in">
-                <h3>Account Settings</h3>
-                <div class="info-row"><span>URL:</span> <small id="display-url">...</small></div>
-                <div class="info-row"><span>Status:</span> <span class="status-badge">Premium Active</span></div>
-                <div class="info-row"><span>Expiry:</span> <span id="display-expiry" class="expiry-text">Unlimited</span></div>
-                <button class="logout-btn" onclick="logout()">Logout Account</button>
-                <button class="close-btn-text" onclick="toggleProfile()">Back to Cinema</button>
+        <div id="category-popup" class="category-modal hidden" onclick="toggleCategoryPopup()">
+            <div class="category-content" onclick="event.stopPropagation()">
+                <div class="modal-header">CHANNELS BY CATEGORY</div>
+                <div id="vertical-category-list" class="vertical-list custom-scrollbar"></div>
             </div>
         </div>
     </section>
 
-    <!-- 4. CINEMA POPUP PLAYER -->
+    <!-- 4. LUXURY PLAYER -->
     <div id="player-modal" class="player-overlay hidden">
-        <div class="player-wrapper scale-in">
-            <div class="player-header">
-                <h2 id="modal-title">Channel Name</h2>
-                <button class="player-close" onclick="closePlayer()"><i class="fa-solid fa-xmark"></i></button>
+        <!-- PLAYER BUFFER SCREEN -->
+        <div id="video-buffer-screen" class="buffer-overlay">
+            <button onclick="closePlayer()" class="back-pill-btn"><i class="fa-solid fa-chevron-left"></i> Cancel</button>
+            <div class="spinner"></div>
+            <div class="text-anim-wrap">
+                <p id="funny-load-text">Initializing...</p>
             </div>
-            <div class="video-container">
-                <video id="video" controls autoplay></video>
+        </div>
+
+        <div class="netflix-player-wrap">
+            <div class="player-top-hud">
+                <button onclick="closePlayer()" class="player-back-icon"><i class="fa-solid fa-arrow-left"></i></button>
+                <div class="hud-info">
+                    <span class="live-pill">LIVE</span>
+                    <h2 id="modal-title">Channel Name</h2>
+                </div>
+            </div>
+
+            <video id="video" autoplay playsinline></video>
+
+            <div class="player-bottom-hud">
+                <div class="progress-bar-wrap"><div class="progress-bar-fill"></div></div>
+                <div class="hud-controls">
+                    <div class="hud-left">
+                        <button class="hud-btn" onclick="togglePlay()"><i id="play-pause-icon" class="fa-solid fa-pause"></i></button>
+                        <div class="volume-hud hide-mobile">
+                            <i class="fa-solid fa-volume-high"></i>
+                            <input type="range" min="0" max="1" step="0.1" value="1" oninput="setVolume(this.value)">
+                        </div>
+                    </div>
+                    <div class="hud-right">
+                        <button class="hud-btn" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i></button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
