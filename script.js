@@ -1,230 +1,198 @@
-/**
- * ELITESTOCKS TV - ULTIMATE EDITION
- * Professional IPTV Engine with Proxy-Rotation & VOD Detection
- */
-
+const M3U_URL = "https://iptv-org.github.io/iptv/index.m3u";
 let allItems = [];
-let currentView = 'live'; // 'live', 'movie', 'series'
-let currentCategory = 'All';
+let recentlyWatched = JSON.parse(localStorage.getItem('estv_recent')) || [];
+let loadedRows = 0;
 let hls = new Hls();
+let funnyInterval;
 
-// 1. SCREEN CONTROLLER
-function showScreen(screenId) {
-    const screens = ['login-screen', 'loader-screen', 'main-dashboard'];
-    screens.forEach(id => {
-        const el = document.getElementById(id);
-        if (id === screenId) {
-            el.classList.remove('hidden');
-        } else {
-            el.classList.add('hidden');
-        }
-    });
+const funnyLines = [
+    "Our CEO Anurag Pandey is personally hand-painting the pixels for you.",
+    "Bribing the internet provider with virtual chai for better speed...",
+    "Wait, Anurag Pandey is just checking if the satellites are awake.",
+    "Calculated stream quality: Anurag Pandey Approved.",
+    "Anurag Pandey is currently wrestling a satellite to get you signal.",
+    "Anurag Pandey: 'Stay calm, the luxury is worth the wait.'",
+    "Fetching high-bandwidth bits for Anurag Pandey's stream.",
+    "ESTV servers are drinking coffee to keep up with CEO Pandey's standards.",
+    "Anurag Pandey once watched a 4K movie on a flip phone. Legend.",
+    "Syncing the cinematic experience... Anurag Pandey is watching.",
+    "Anurag Pandey says: 'Life is too short for buffering.'"
+];
+
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
 }
 
-function updateLoader(percent, text) {
-    const fill = document.getElementById('progress-fill');
-    const label = document.getElementById('loader-text');
-    if (fill) fill.style.width = percent + '%';
-    if (label) label.innerText = text;
+function updateLoader(pct, text) {
+    document.getElementById('progress-fill').style.width = pct + '%';
+    if(text) document.getElementById('loader-text').innerText = text;
 }
 
-// 2. THE LOGIN & FETCH ENGINE (The part that was failing)
+// 1. DATA HANDLER
 async function handleLogin() {
-    const url = document.getElementById('m3u-input').value.trim();
-    if (!url) return alert("Please enter a valid M3U URL.");
-
     showScreen('loader-screen');
-    updateLoader(20, "Establishing handshake...");
+    updateLoader(20, "INITIALIZING...");
 
-    // PROXY LIST - We try these in order
-    const fetchMethods = [
-        { name: "Direct", url: url }, 
-        { name: "Proxy Alpha", url: `https://corsproxy.io/?${encodeURIComponent(url)}` },
-        { name: "Proxy Beta", url: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}` }
-    ];
-
-    let rawData = null;
-
-    for (let method of fetchMethods) {
+    const targets = [M3U_URL, `https://api.allorigins.win/raw?url=${encodeURIComponent(M3U_URL)}` ];
+    let data = null;
+    for (let url of targets) {
         try {
-            console.log(`EliteStocks TV: Attempting ${method.name} connection...`);
-            const response = await fetch(method.url);
-            if (response.ok) {
-                const text = await response.text();
-                // Check if the data is actually an M3U file
-                if (text.includes("#EXTM3U")) {
-                    rawData = text;
-                    console.log(`EliteStocks TV: Success via ${method.name}`);
-                    break;
-                }
-            }
-        } catch (e) {
-            console.error(`${method.name} failed:`, e);
-        }
+            const res = await fetch(url);
+            if(res.ok) { data = await res.text(); if(data.includes("#EXTM3U")) break; }
+        } catch(e) {}
     }
 
-    if (rawData) {
-        updateLoader(60, "Syncing Media Library...");
-        parseM3U(rawData);
-        
-        // Setup Account Info (Expiry/URL)
-        document.getElementById('display-url').innerText = url.split('?')[0];
-        const expMatch = url.match(/exp_date=([^&]+)/);
-        if (expMatch) {
-            const date = new Date(expMatch[1] * 1000);
-            document.getElementById('display-expiry').innerText = date.toLocaleDateString();
-        }
-
-        updateLoader(100, "Cinema Ready.");
-        
-        setTimeout(() => {
-            showScreen('main-dashboard');
-            renderDashboard();
-        }, 800);
+    if (data) {
+        parseM3U(data);
+        updateLoader(100, "SYNCED");
+        setTimeout(() => { 
+            showScreen('main-dashboard'); 
+            initInfiniteScroll();
+            renderInitialDashboard(); 
+        }, 600);
     } else {
-        alert("CRITICAL ERROR: Connection Refused.\n\nYour IPTV provider or Browser is blocking the download.\n\nSOLUTION: Install 'Allow CORS' Chrome Extension or check your URL.");
-        showScreen('login-screen');
+        alert("Server Refused. Try a VPN.");
+        showScreen('splash-screen');
     }
 }
 
-// 3. THE M3U PARSER (Sorts Live vs Movies vs Series)
 function parseM3U(data) {
     const lines = data.split('\n');
     allItems = [];
     let current = null;
-
     for (let line of lines) {
         line = line.trim();
         if (line.startsWith('#EXTINF:')) {
             const name = line.split(',').pop().trim();
             const logo = line.match(/tvg-logo="([^"]+)"/i)?.[1];
-            const group = line.match(/group-title="([^"]+)"/i)?.[1] || "General";
+            const group = line.match(/group-title="([^"]+)"/i)?.[1] || "International";
             current = { name, logo, group };
         } else if (line.startsWith('http')) {
-            if (current) {
-                current.url = line;
-                const lowUrl = line.toLowerCase();
-                
-                // Smart Detection Logic
-                if (lowUrl.includes('/movie/') || lowUrl.endsWith('.mp4') || lowUrl.endsWith('.mkv')) {
-                    current.type = 'movie';
-                } else if (lowUrl.includes('/series/') || lowUrl.includes('/xmltv/')) {
-                    current.type = 'series';
-                } else {
-                    current.type = 'live';
-                }
-                
-                allItems.push(current);
-                current = null;
-            }
+            if (current) { current.url = line; allItems.push(current); current = null; }
         }
     }
 }
 
-// 4. THE DASHBOARD CONTROLLER
-function setView(view) {
-    currentView = view;
-    currentCategory = 'All';
-    
-    // Update active button UI
-    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-    if (view === 'live') document.getElementById('btn-live').classList.add('active');
-    if (view === 'movie') document.getElementById('btn-movie').classList.add('active');
-    if (view === 'series') document.getElementById('btn-series').classList.add('active');
-    
-    renderDashboard();
+// 2. DASHBOARD
+function renderInitialDashboard() {
+    const hero = allItems[Math.floor(Math.random() * allItems.length)];
+    document.getElementById('hero-title').innerText = hero.name;
+    document.getElementById('hero-bg').src = hero.logo || "https://images.unsplash.com/photo-1574267432553-4b4628081c31?q=80&w=2000";
+    document.getElementById('hero-play-btn').onclick = () => openPlayer(hero.url, hero.name);
+    renderRows();
 }
 
-function setCategory(cat) {
-    currentCategory = cat;
-    renderDashboard();
-}
-
-function renderDashboard() {
-    const grid = document.getElementById('main-grid');
-    const scroller = document.getElementById('category-scroller');
-    const searchQuery = document.getElementById('search-input').value.toLowerCase();
-    
-    grid.innerHTML = '';
-    
-    // 1. Filter by Section (Live/Movie/Series)
-    let filtered = allItems.filter(item => item.type === currentView);
-    
-    // 2. Generate Categories for this section
-    const uniqueCats = ['All', ...new Set(filtered.map(i => i.group))];
-    scroller.innerHTML = uniqueCats.map(cat => `
-        <div class="cat-badge ${currentCategory === cat ? 'active' : ''}" onclick="setCategory('${cat}')">
-            ${cat}
-        </div>
-    `).join('');
-
-    // 3. Filter by Category & Search
-    let displayList = filtered.filter(item => {
-        const matchCat = (currentCategory === 'All' || item.group === currentCategory);
-        const matchSearch = item.name.toLowerCase().includes(searchQuery);
-        return matchCat && matchSearch;
+function renderRows() {
+    const container = document.getElementById('rows-container');
+    if (loadedRows === 0 && recentlyWatched.length > 0) {
+        container.appendChild(createRow("Recently Watched", recentlyWatched));
+    }
+    const groups = [...new Set(allItems.map(i => i.group))];
+    const nextGroups = groups.slice(loadedRows, loadedRows + 5);
+    nextGroups.forEach(group => {
+        const channels = allItems.filter(i => i.group === group).slice(0, 15);
+        if (channels.length > 0) container.appendChild(createRow(group, channels));
     });
-
-    // 4. Build Grid Cards
-    displayList.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'channel-card scale-in';
-        
-        const logo = item.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&background=111&color=fff&size=128`;
-        
-        card.innerHTML = `
-            <img src="${logo}" loading="lazy" onerror="this.src='https://via.placeholder.com/150?text=TV'">
-            <p>${item.name}</p>
-        `;
-        
-        card.onclick = () => openPlayer(item.url, item.name);
-        grid.appendChild(card);
-    });
+    loadedRows += 5;
 }
 
-function handleSearch() {
-    renderDashboard();
+function createRow(title, items) {
+    const div = document.createElement('div');
+    div.className = 'row-item';
+    div.innerHTML = `<h3 class="row-title">${title}</h3><div class="row-scroller">${items.map(item => `<div class="card-item" onclick="openPlayer('${item.url}', '${item.name.replace(/'/g, "\\'")}')"><img src="${item.logo || 'https://via.placeholder.com/300x170/000/111?text=ESTV'}" loading="lazy"><div class="card-overlay">${item.name}</div></div>`).join('')}</div>`;
+    return div;
 }
 
-// 5. THE CINEMA MODAL PLAYER
+function initInfiniteScroll() {
+    document.getElementById('scroll-area').onscroll = (e) => {
+        if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight - 300) renderRows();
+    };
+}
+
+// 3. PLAYER & FUNNY TEXT ENGINE
+function startFunnyText() {
+    const textEl = document.getElementById('funny-load-text');
+    const update = () => {
+        textEl.style.opacity = 0;
+        setTimeout(() => {
+            textEl.innerText = funnyLines[Math.floor(Math.random() * funnyLines.length)];
+            textEl.style.opacity = 1;
+        }, 500);
+    };
+    update();
+    funnyInterval = setInterval(update, 4000);
+}
+
 function openPlayer(url, name) {
+    const channel = allItems.find(i => i.name === name) || { name, url };
+    recentlyWatched = [channel, ...recentlyWatched.filter(i => i.name !== name)].slice(0, 15);
+    localStorage.setItem('estv_recent', JSON.stringify(recentlyWatched));
+
     const modal = document.getElementById('player-modal');
-    const video = document.getElementById('video');
+    modal.classList.remove('hidden');
     document.getElementById('modal-title').innerText = name;
     
-    modal.classList.remove('hidden');
+    const buffer = document.getElementById('video-buffer-screen');
+    buffer.classList.remove('hidden');
+    startFunnyText();
+
+    const video = document.getElementById('video');
+    video.onplaying = () => {
+        buffer.classList.add('hidden');
+        clearInterval(funnyInterval);
+    };
 
     if (Hls.isSupported()) {
-        hls.destroy(); // Clear previous session
-        hls = new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            video.play().catch(e => console.error("Autoplay prevented:", e));
-        });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        // Support for Safari/iOS
-        video.src = url;
-    }
+        hls.destroy(); hls = new Hls();
+        hls.loadSource(url); hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+    } else { video.src = url; }
 }
 
 function closePlayer() {
+    hls.destroy();
     document.getElementById('player-modal').classList.add('hidden');
     document.getElementById('video').pause();
+    clearInterval(funnyInterval);
 }
 
-// 6. PROFILE & ACCOUNT
-function toggleProfile() {
-    document.getElementById('profile-modal').classList.toggle('hidden');
+function togglePlay() {
+    const v = document.getElementById('video');
+    const icon = document.getElementById('play-pause-icon');
+    if (v.paused) { v.play(); icon.className = "fa-solid fa-pause"; }
+    else { v.pause(); icon.className = "fa-solid fa-play"; }
 }
 
-function logout() {
-    location.reload();
+function setVolume(v) { document.getElementById('video').volume = v; }
+function toggleFullscreen() {
+    const v = document.getElementById('video');
+    if (v.requestFullscreen) v.requestFullscreen();
+    else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen();
 }
 
-// Prevent Enter key from refreshing page
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !document.getElementById('login-screen').classList.contains('hidden')) {
-        handleLogin();
+function toggleSearch() { document.getElementById('search-bar-wrap').classList.toggle('hidden'); }
+function handleSearch() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    const results = allItems.filter(i => i.name.toLowerCase().includes(q)).slice(0, 20);
+    const container = document.getElementById('rows-container');
+    container.innerHTML = "";
+    if (results.length > 0) container.appendChild(createRow("Search Results", results));
+}
+
+function toggleCategoryPopup() {
+    const modal = document.getElementById('category-popup');
+    modal.classList.toggle('hidden');
+    if (!modal.classList.contains('hidden')) {
+        const groups = [...new Set(allItems.slice(0, 1000).map(i => i.group))].slice(0, 50);
+        document.getElementById('vertical-category-list').innerHTML = groups.map(cat => `<div class="cat-item" onclick="setCategory('${cat}')">${cat}</div>`).join('');
     }
-});
+}
+
+function setCategory(cat) {
+    const list = allItems.filter(i => i.group === cat).slice(0, 50);
+    const container = document.getElementById('rows-container');
+    container.innerHTML = "";
+    container.appendChild(createRow(`Browsing: ${cat}`, list));
+    toggleCategoryPopup();
+}
