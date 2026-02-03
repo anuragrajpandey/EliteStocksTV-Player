@@ -1,198 +1,317 @@
+/* ================= CONFIG ================= */
 const M3U_URL = "https://iptv-org.github.io/iptv/index.m3u";
-let allItems = [];
-let recentlyWatched = JSON.parse(localStorage.getItem('estv_recent')) || [];
-let loadedRows = 0;
-let hls = new Hls();
-let funnyInterval;
+const CHUNK_GROUPS = 4;
+const CHANNELS_PER_ROW = 12;
+const SEARCH_LIMIT = 40;
 
+/* ================= STATE ================= */
+let allItems = [];
+let groupedItems = {};
+let categoryList = [];
+let loadedGroupIndex = 0;
+
+let recentlyWatched = JSON.parse(localStorage.getItem("estv_recent")) || [];
+let hls = new Hls();
+let funnyInterval = null;
+
+/* ================= FUNNY LOADING TEXT ================= */
 const funnyLines = [
-    "Our CEO Anurag Pandey is personally hand-painting the pixels for you.",
-    "Bribing the internet provider with virtual chai for better speed...",
-    "Wait, Anurag Pandey is just checking if the satellites are awake.",
-    "Calculated stream quality: Anurag Pandey Approved.",
-    "Anurag Pandey is currently wrestling a satellite to get you signal.",
-    "Anurag Pandey: 'Stay calm, the luxury is worth the wait.'",
-    "Fetching high-bandwidth bits for Anurag Pandey's stream.",
-    "ESTV servers are drinking coffee to keep up with CEO Pandey's standards.",
-    "Anurag Pandey once watched a 4K movie on a flip phone. Legend.",
-    "Syncing the cinematic experience... Anurag Pandey is watching.",
-    "Anurag Pandey says: 'Life is too short for buffering.'"
+    "Waking up satellites… please wait.",
+    "Luxury streams don’t rush.",
+    "Optimizing pixels for premium eyes.",
+    "Negotiating with the internet gods.",
+    "Almost there… hold tight.",
+    "CEO is personally approving this stream.",
+    "Calibrating cinematic experience.",
+    "Checking signal quality twice… just to be sure."
 ];
 
+/* ================= BASIC UI HELPERS ================= */
 function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
+    document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
+    document.getElementById(id).classList.remove("hidden");
 }
 
 function updateLoader(pct, text) {
-    document.getElementById('progress-fill').style.width = pct + '%';
-    if(text) document.getElementById('loader-text').innerText = text;
+    document.getElementById("progress-fill").style.width = pct + "%";
+    if (text) document.getElementById("loader-text").innerText = text;
 }
 
-// 1. DATA HANDLER
+/* ================= APP START ================= */
 async function handleLogin() {
-    showScreen('loader-screen');
-    updateLoader(20, "INITIALIZING...");
+    showScreen("loader-screen");
+    updateLoader(15, "INITIALIZING…");
 
-    const targets = [M3U_URL, `https://api.allorigins.win/raw?url=${encodeURIComponent(M3U_URL)}` ];
     let data = null;
-    for (let url of targets) {
+    const sources = [
+        M3U_URL,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(M3U_URL)}`
+    ];
+
+    for (let url of sources) {
         try {
             const res = await fetch(url);
-            if(res.ok) { data = await res.text(); if(data.includes("#EXTM3U")) break; }
-        } catch(e) {}
+            if (res.ok) {
+                const txt = await res.text();
+                if (txt.includes("#EXTM3U")) {
+                    data = txt;
+                    break;
+                }
+            }
+        } catch (e) {}
     }
 
-    if (data) {
-        parseM3U(data);
-        updateLoader(100, "SYNCED");
-        setTimeout(() => { 
-            showScreen('main-dashboard'); 
-            initInfiniteScroll();
-            renderInitialDashboard(); 
-        }, 600);
-    } else {
-        alert("Server Refused. Try a VPN.");
-        showScreen('splash-screen');
+    if (!data) {
+        alert("Playlist blocked. Try VPN.");
+        showScreen("splash-screen");
+        return;
     }
+
+    updateLoader(60, "PARSING CHANNELS…");
+    parseM3U(data);
+
+    updateLoader(100, "READY");
+    setTimeout(() => {
+        showScreen("main-dashboard");
+        renderHero();
+        renderNextGroups();
+        initInfiniteScroll();
+    }, 600);
 }
 
+/* ================= PARSE M3U ================= */
 function parseM3U(data) {
-    const lines = data.split('\n');
     allItems = [];
+    groupedItems = {};
+    categoryList = [];
+    loadedGroupIndex = 0;
+
     let current = null;
-    for (let line of lines) {
+
+    data.split("\n").forEach(line => {
         line = line.trim();
-        if (line.startsWith('#EXTINF:')) {
-            const name = line.split(',').pop().trim();
-            const logo = line.match(/tvg-logo="([^"]+)"/i)?.[1];
-            const group = line.match(/group-title="([^"]+)"/i)?.[1] || "International";
-            current = { name, logo, group };
-        } else if (line.startsWith('http')) {
-            if (current) { current.url = line; allItems.push(current); current = null; }
+
+        if (line.startsWith("#EXTINF")) {
+            current = {
+                name: line.split(",").pop().trim(),
+                logo: line.match(/tvg-logo="([^"]+)"/i)?.[1] || "",
+                group: line.match(/group-title="([^"]+)"/i)?.[1] || "Other"
+            };
+        } else if (line.startsWith("http") && current) {
+            current.url = line;
+            allItems.push(current);
+
+            if (!groupedItems[current.group]) {
+                groupedItems[current.group] = [];
+                categoryList.push(current.group);
+            }
+            groupedItems[current.group].push(current);
+            current = null;
         }
-    }
+    });
 }
 
-// 2. DASHBOARD
-function renderInitialDashboard() {
+/* ================= HERO ================= */
+function renderHero() {
     const hero = allItems[Math.floor(Math.random() * allItems.length)];
-    document.getElementById('hero-title').innerText = hero.name;
-    document.getElementById('hero-bg').src = hero.logo || "https://images.unsplash.com/photo-1574267432553-4b4628081c31?q=80&w=2000";
-    document.getElementById('hero-play-btn').onclick = () => openPlayer(hero.url, hero.name);
-    renderRows();
+    document.getElementById("hero-title").innerText = hero.name;
+    document.getElementById("hero-bg").src =
+        hero.logo || "https://via.placeholder.com/1600x900/000/111?text=ESTV";
+    document.getElementById("hero-play-btn").onclick =
+        () => openPlayer(hero.url, hero.name);
 }
 
-function renderRows() {
-    const container = document.getElementById('rows-container');
-    if (loadedRows === 0 && recentlyWatched.length > 0) {
+/* ================= ROWS ================= */
+function renderNextGroups() {
+    const container = document.getElementById("rows-container");
+
+    if (loadedGroupIndex === 0 && recentlyWatched.length) {
         container.appendChild(createRow("Recently Watched", recentlyWatched));
     }
-    const groups = [...new Set(allItems.map(i => i.group))];
-    const nextGroups = groups.slice(loadedRows, loadedRows + 5);
-    nextGroups.forEach(group => {
-        const channels = allItems.filter(i => i.group === group).slice(0, 15);
-        if (channels.length > 0) container.appendChild(createRow(group, channels));
+
+    const nextCats = categoryList.slice(
+        loadedGroupIndex,
+        loadedGroupIndex + CHUNK_GROUPS
+    );
+
+    nextCats.forEach(cat => {
+        const items = groupedItems[cat].slice(0, CHANNELS_PER_ROW);
+        container.appendChild(createRow(cat, items));
     });
-    loadedRows += 5;
+
+    loadedGroupIndex += CHUNK_GROUPS;
 }
 
 function createRow(title, items) {
-    const div = document.createElement('div');
-    div.className = 'row-item';
-    div.innerHTML = `<h3 class="row-title">${title}</h3><div class="row-scroller">${items.map(item => `<div class="card-item" onclick="openPlayer('${item.url}', '${item.name.replace(/'/g, "\\'")}')"><img src="${item.logo || 'https://via.placeholder.com/300x170/000/111?text=ESTV'}" loading="lazy"><div class="card-overlay">${item.name}</div></div>`).join('')}</div>`;
-    return div;
+    const row = document.createElement("div");
+    row.className = "row-item";
+
+    row.innerHTML = `
+        <h3 class="row-title">${title}</h3>
+        <div class="row-scroller">
+            ${items.map(i => `
+                <div class="card-item"
+                     onclick="openPlayer('${i.url}','${i.name.replace(/'/g,"\\'")}')">
+                    <img src="${i.logo}"
+                         onerror="this.src='https://via.placeholder.com/300x170/000/111?text=ESTV'">
+                    <div class="card-overlay">${i.name}</div>
+                </div>
+            `).join("")}
+        </div>
+    `;
+    return row;
 }
 
+/* ================= INFINITE SCROLL ================= */
 function initInfiniteScroll() {
-    document.getElementById('scroll-area').onscroll = (e) => {
-        if (e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight - 300) renderRows();
+    const area = document.getElementById("scroll-area");
+
+    area.onscroll = () => {
+        if (area.scrollTop + area.clientHeight >= area.scrollHeight - 350) {
+            const loader = document.getElementById("infinite-loader");
+            loader.style.display = "block";
+
+            setTimeout(() => {
+                renderNextGroups();
+                loader.style.display = "none";
+            }, 700);
+        }
     };
 }
 
-// 3. PLAYER & FUNNY TEXT ENGINE
+/* ================= SEARCH ================= */
+function toggleSearch() {
+    document.getElementById("search-bar-wrap").classList.toggle("hidden");
+    document.getElementById("search-input").value = "";
+    document.getElementById("search-results").innerHTML = "";
+}
+
+function handleSearch() {
+    const q = document.getElementById("search-input").value.toLowerCase();
+    const box = document.getElementById("search-results");
+    box.innerHTML = "";
+
+    if (!q) return;
+
+    allItems
+        .filter(i => i.name.toLowerCase().includes(q))
+        .slice(0, SEARCH_LIMIT)
+        .forEach(i => {
+            const div = document.createElement("div");
+            div.className = "card-item";
+            div.innerHTML = `
+                <img src="${i.logo}"
+                     onerror="this.src='https://via.placeholder.com/300x170/000/111?text=ESTV'">
+                <div class="card-overlay">${i.name}</div>
+            `;
+            div.onclick = () => {
+                toggleSearch();
+                openPlayer(i.url, i.name);
+            };
+            box.appendChild(div);
+        });
+}
+
+/* ================= CATEGORIES ================= */
+function toggleCategoryPopup() {
+    const modal = document.getElementById("category-popup");
+    modal.classList.toggle("hidden");
+
+    if (!modal.classList.contains("hidden")) {
+        document.getElementById("vertical-category-list").innerHTML =
+            categoryList.map(c =>
+                `<div class="cat-item" onclick="openCategory('${c.replace(/'/g,"\\'")}')">${c}</div>`
+            ).join("");
+    }
+}
+
+function openCategory(cat) {
+    const container = document.getElementById("rows-container");
+    container.innerHTML = "";
+
+    container.appendChild(
+        createRow(cat, groupedItems[cat].slice(0, 40))
+    );
+
+    loadedGroupIndex = 0;
+    toggleCategoryPopup();
+}
+
+/* ================= PLAYER ================= */
 function startFunnyText() {
-    const textEl = document.getElementById('funny-load-text');
-    const update = () => {
-        textEl.style.opacity = 0;
-        setTimeout(() => {
-            textEl.innerText = funnyLines[Math.floor(Math.random() * funnyLines.length)];
-            textEl.style.opacity = 1;
-        }, 500);
-    };
-    update();
-    funnyInterval = setInterval(update, 4000);
+    const el = document.getElementById("funny-load-text");
+    el.innerText = funnyLines[0];
+
+    funnyInterval = setInterval(() => {
+        el.innerText = funnyLines[Math.floor(Math.random() * funnyLines.length)];
+    }, 3500);
 }
 
 function openPlayer(url, name) {
-    const channel = allItems.find(i => i.name === name) || { name, url };
-    recentlyWatched = [channel, ...recentlyWatched.filter(i => i.name !== name)].slice(0, 15);
-    localStorage.setItem('estv_recent', JSON.stringify(recentlyWatched));
+    const channel = allItems.find(i => i.name === name);
+    if (!channel) return;
 
-    const modal = document.getElementById('player-modal');
-    modal.classList.remove('hidden');
-    document.getElementById('modal-title').innerText = name;
-    
-    const buffer = document.getElementById('video-buffer-screen');
-    buffer.classList.remove('hidden');
+    /* Save recently watched */
+    recentlyWatched = [
+        channel,
+        ...recentlyWatched.filter(i => i.name !== name)
+    ].slice(0, 12);
+    localStorage.setItem("estv_recent", JSON.stringify(recentlyWatched));
+
+    /* Show player */
+    document.getElementById("player-modal").classList.remove("hidden");
+    document.getElementById("video-buffer-screen").classList.remove("hidden");
+    document.getElementById("yt-video-title").innerText = name;
+
     startFunnyText();
 
-    const video = document.getElementById('video');
+    const video = document.getElementById("video");
     video.onplaying = () => {
-        buffer.classList.add('hidden');
+        document.getElementById("video-buffer-screen").classList.add("hidden");
         clearInterval(funnyInterval);
     };
 
     if (Hls.isSupported()) {
-        hls.destroy(); hls = new Hls();
-        hls.loadSource(url); hls.attachMedia(video);
+        hls.destroy();
+        hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-    } else { video.src = url; }
+    } else {
+        video.src = url;
+        video.play();
+    }
+
+    renderSuggested(channel);
+}
+
+function renderSuggested(channel) {
+    const box = document.getElementById("suggested-channels");
+    box.innerHTML = "";
+
+    groupedItems[channel.group]
+        .filter(i => i.name !== channel.name)
+        .slice(0, 15)
+        .forEach(i => {
+            const div = document.createElement("div");
+            div.className = "card-item";
+            div.innerHTML = `
+                <img src="${i.logo}"
+                     onerror="this.src='https://via.placeholder.com/300x170/000/111?text=ESTV'">
+                <div class="card-overlay">${i.name}</div>
+            `;
+            div.onclick = () => openPlayer(i.url, i.name);
+            box.appendChild(div);
+        });
 }
 
 function closePlayer() {
-    hls.destroy();
-    document.getElementById('player-modal').classList.add('hidden');
-    document.getElementById('video').pause();
+    if (hls) hls.destroy();
     clearInterval(funnyInterval);
-}
 
-function togglePlay() {
-    const v = document.getElementById('video');
-    const icon = document.getElementById('play-pause-icon');
-    if (v.paused) { v.play(); icon.className = "fa-solid fa-pause"; }
-    else { v.pause(); icon.className = "fa-solid fa-play"; }
-}
+    const video = document.getElementById("video");
+    video.pause();
+    video.src = "";
 
-function setVolume(v) { document.getElementById('video').volume = v; }
-function toggleFullscreen() {
-    const v = document.getElementById('video');
-    if (v.requestFullscreen) v.requestFullscreen();
-    else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen();
-}
-
-function toggleSearch() { document.getElementById('search-bar-wrap').classList.toggle('hidden'); }
-function handleSearch() {
-    const q = document.getElementById('search-input').value.toLowerCase();
-    const results = allItems.filter(i => i.name.toLowerCase().includes(q)).slice(0, 20);
-    const container = document.getElementById('rows-container');
-    container.innerHTML = "";
-    if (results.length > 0) container.appendChild(createRow("Search Results", results));
-}
-
-function toggleCategoryPopup() {
-    const modal = document.getElementById('category-popup');
-    modal.classList.toggle('hidden');
-    if (!modal.classList.contains('hidden')) {
-        const groups = [...new Set(allItems.slice(0, 1000).map(i => i.group))].slice(0, 50);
-        document.getElementById('vertical-category-list').innerHTML = groups.map(cat => `<div class="cat-item" onclick="setCategory('${cat}')">${cat}</div>`).join('');
-    }
-}
-
-function setCategory(cat) {
-    const list = allItems.filter(i => i.group === cat).slice(0, 50);
-    const container = document.getElementById('rows-container');
-    container.innerHTML = "";
-    container.appendChild(createRow(`Browsing: ${cat}`, list));
-    toggleCategoryPopup();
+    document.getElementById("player-modal").classList.add("hidden");
 }
