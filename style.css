@@ -1,91 +1,495 @@
 :root {
     --netflix-red: #E50914;
-    --bg: #000000;
-    --text: #ffffff;
-    --border: rgba(255, 255, 255, 0.1);
+    --bg: #000;
+    --text: #fff;
+    --border: rgba(255,255,255,0.12);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+/* ================= RESET ================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
 
-/* SHARED COMPONENTS */
-.flex-center { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.screen { position: fixed; inset: 0; background: var(--bg); transition: 0.5s ease; z-index: 10; }
-.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+}
 
-.pill-btn-white { background: #fff; color: #000; border: none; padding: 18px 60px; font-size: 1.1rem; font-weight: 800; border-radius: 50px; cursor: pointer; transition: 0.3s; }
-.pill-btn-white:hover { transform: scale(1.05); background: #e5e5e5; }
+/* ================= SHARED ================= */
+.screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 10;
+    transition: 0.4s ease;
+}
 
-/* HEADER */
-.netflix-header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #000; }
-.header-top-row { display: flex; align-items: center; justify-content: space-between; padding: 15px 4%; height: 75px; }
-.header-divider { height: 1px; background: linear-gradient(to right, transparent, var(--border), transparent); width: 100%; }
+.hidden {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+}
 
-.header-left { display: flex; align-items: center; gap: 30px; }
-.icon-btn { background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; }
-.netflix-nav { display: flex; gap: 20px; }
-.nav-link { background: none; border: none; color: #aaa; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
-.nav-link.active, .nav-link:hover { color: #fff; }
-.brand-n { color: var(--netflix-red); font-size: 2rem; font-weight: 900; letter-spacing: -2px; }
+.flex-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
 
-/* HERO */
-.netflix-content { height: 100vh; overflow-y: auto; padding-top: 80px; padding-bottom: 100px; }
-.hero-card { position: relative; width: 100%; height: 75vh; padding: 0 4%; margin-top: 20px; }
-.hero-inner { position: relative; width: 100%; height: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
-#hero-bg { width: 100%; height: 100%; object-fit: cover; }
-.hero-vignette { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.8), transparent), linear-gradient(to top, #000, transparent); }
-.hero-details { position: absolute; bottom: 10%; left: 5%; max-width: 500px; }
-.hero-meta { display: flex; align-items: center; gap: 15px; font-size: 0.8rem; font-weight: 700; color: #888; margin-bottom: 15px; }
-.meta-tag { color: var(--netflix-red); }
-#hero-title { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; line-height: 1; margin-bottom: 20px; }
-#hero-desc { font-size: 1rem; color: #ccc; margin-bottom: 30px; line-height: 1.5; }
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.25);
+    border-radius: 10px;
+}
 
-.pill-btn-white-hero { background: #fff; color: #000; border: none; padding: 14px 35px; border-radius: 6px; font-weight: 800; display: flex; align-items: center; gap: 10px; font-size: 1.1rem; cursor: pointer; transition: 0.2s; }
-.pill-btn-white-hero:hover { background: rgba(255,255,255,0.7); }
+/* ================= SPLASH ================= */
+#splash-screen {
+    background: radial-gradient(circle at top, #111, #000);
+}
 
-/* BUFFER BACK BUTTON */
-.back-pill-btn { position: absolute; top: 40px; left: 40px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px 28px; border-radius: 50px; cursor: pointer; backdrop-filter: blur(10px); font-weight: 700; transition: 0.3s; z-index: 100; }
-.back-pill-btn:hover { background: var(--netflix-red); border-color: var(--netflix-red); }
+.static-logo {
+    font-size: clamp(3rem, 7vw, 4.5rem);
+    font-weight: 900;
+    letter-spacing: -2px;
+}
 
-/* PLAYER UI */
-.player-overlay { position: fixed; inset: 0; background: #000; z-index: 2000; }
-.netflix-player-wrap { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
-video { width: 100%; height: 100%; object-fit: contain; }
+.pill-btn-white {
+    position: absolute;
+    bottom: 40px;
+    left: 40px;
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 16px 50px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.pill-btn-white:hover {
+    transform: scale(1.05);
+}
 
-.player-top-hud { position: absolute; top: 0; left: 0; right: 0; padding: 40px; display: flex; align-items: center; gap: 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); z-index: 10; opacity: 0; transition: 0.4s; }
-.player-overlay:hover .player-top-hud, .player-overlay:hover .player-bottom-hud { opacity: 1; }
-.player-back-icon { background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; }
-.hud-info { display: flex; align-items: center; gap: 15px; }
-.live-pill { background: var(--netflix-red); padding: 4px 12px; border-radius: 4px; font-weight: 900; font-size: 0.7rem; }
+/* ================= LOADER ================= */
+.rainbow-logo {
+    font-size: clamp(5rem, 15vw, 10rem);
+    font-weight: 900;
+    background: linear-gradient(90deg,#ff0000,#ffff00,#00ff00,#00ffff,#0000ff,#ff00ff,#ff0000);
+    background-size: 400%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: rainbow 4s linear infinite;
+}
 
-.player-bottom-hud { position: absolute; bottom: 0; left: 0; right: 0; padding: 40px; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); z-index: 10; opacity: 0; transition: 0.4s; }
-.progress-bar-wrap { height: 4px; background: rgba(255,255,255,0.2); margin-bottom: 25px; border-radius: 10px; overflow: hidden; }
-.progress-bar-fill { height: 100%; background: var(--netflix-red); width: 35%; box-shadow: 0 0 10px var(--netflix-red); }
-.hud-controls { display: flex; justify-content: space-between; align-items: center; }
-.hud-left { display: flex; gap: 40px; }
-.hud-btn { background: none; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; }
+@keyframes rainbow {
+    0% { background-position: 0%; }
+    100% { background-position: 100%; }
+}
 
-/* BUFFER SCREEN */
-.buffer-overlay { position: absolute; inset: 0; background: #000; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-.spinner { width: 60px; height: 60px; border: 4px solid #111; border-top-color: var(--netflix-red); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 30px; }
-#funny-load-text { font-size: 1.2rem; font-weight: 600; color: #888; line-height: 1.5; max-width: 500px; transition: 0.5s; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.master-bar {
+    width: 300px;
+    height: 4px;
+    background: #111;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 25px 0;
+}
 
-/* GRID & ROWS */
-.row-item { margin-bottom: 40px; padding-left: 4%; }
-.row-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 15px; }
-.row-scroller { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
-.row-scroller::-webkit-scrollbar { display: none; }
-.card-item { flex: 0 0 260px; aspect-ratio: 16/9; background: #111; border-radius: 6px; border: 1px solid var(--border); position: relative; overflow: hidden; cursor: pointer; transition: 0.3s; }
-.card-item:hover { transform: scale(1.08); z-index: 10; border-color: #fff; }
-.card-item img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
-.card-overlay { position: absolute; bottom: 0; width: 100%; padding: 10px; background: linear-gradient(transparent, #000); font-weight: 700; font-size: 0.85rem; }
+.bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--netflix-red);
+}
 
-/* SEARCH OVERLAY */
-.search-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-.search-inner { width: 80%; position: relative; }
-.search-overlay input { width: 100%; background: none; border: none; border-bottom: 2px solid #333; color: #fff; font-size: 3rem; padding: 20px; outline: none; }
-.close-search-btn { position: absolute; right: 0; top: 30%; background: none; border: none; color: #fff; font-size: 2.5rem; cursor: pointer; }
+/* ================= HEADER ================= */
+.netflix-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #000;
+    z-index: 100;
+}
 
-.rainbow-logo { font-size: clamp(5rem, 15vw, 10rem); font-weight: 900; background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000); background-size: 400%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: rainbow 4s linear infinite; }
-@keyframes rainbow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+.header-top-row {
+    height: 75px;
+    padding: 0 4%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.netflix-nav {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-link {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-weight: 600;
+    cursor: pointer;
+}
+.nav-link.active,
+.nav-link:hover {
+    color: #fff;
+}
+
+.brand-n {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--netflix-red);
+}
+
+/* ================= CONTENT ================= */
+.netflix-content {
+    height: 100vh;
+    overflow-y: auto;
+    padding-top: 90px;
+    padding-bottom: 140px;
+}
+
+/* ================= HERO ================= */
+.hero-card {
+    height: 75vh;
+    padding: 0 4%;
+    margin-top: 20px;
+}
+
+.hero-inner {
+    height: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    position: relative;
+}
+
+#hero-bg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero-vignette {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(to right, rgba(0,0,0,0.85), transparent),
+        linear-gradient(to top, #000, transparent);
+}
+
+.hero-details {
+    position: absolute;
+    bottom: 10%;
+    left: 5%;
+    max-width: 500px;
+}
+
+.hero-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #aaa;
+    margin-bottom: 15px;
+}
+
+.meta-tag {
+    color: var(--netflix-red);
+}
+
+#hero-title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 800;
+    margin-bottom: 20px;
+}
+
+#hero-desc {
+    color: #ccc;
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+
+.pill-btn-white-hero {
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 14px 35px;
+    border-radius: 6px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+/* ================= ROWS ================= */
+.row-item {
+    margin-bottom: 40px;
+    padding-left: 4%;
+}
+
+.row-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.row-scroller {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+}
+
+.row-scroller::-webkit-scrollbar {
+    display: none;
+}
+
+.card-item {
+    flex: 0 0 240px;
+    aspect-ratio: 16 / 9;
+    background: #111;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    transition: 0.3s;
+}
+
+.card-item:hover {
+    transform: scale(1.08);
+    z-index: 5;
+}
+
+.card-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.9;
+}
+
+.card-overlay {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(transparent, #000);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+/* ================= SEARCH ================= */
+.search-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 1000;
+    padding-top: 120px;
+}
+
+.search-inner {
+    width: 80%;
+    margin: auto;
+}
+
+.search-overlay input {
+    width: 100%;
+    background: none;
+    border: none;
+    border-bottom: 2px solid #333;
+    color: #fff;
+    font-size: 2.5rem;
+    padding: 15px;
+    outline: none;
+}
+
+.close-search-btn {
+    position: absolute;
+    right: 10%;
+    top: 25px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.search-results-grid {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
+    gap: 15px;
+}
+
+/* ================= CATEGORY ================= */
+.category-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.category-content {
+    background: #000;
+    border: 1px solid var(--border);
+    width: 350px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 15px;
+    font-weight: 800;
+    border-bottom: 1px solid var(--border);
+}
+
+.cat-item {
+    padding: 14px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+}
+.cat-item:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+/* ================= PLAYER ================= */
+.player-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 2000;
+}
+
+.netflix-player-wrap {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+}
+
+/* ===== YOUTUBE STYLE TOP BAR ===== */
+.yt-top-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.85), transparent);
+    z-index: 20;
+}
+
+#yt-video-title {
+    font-weight: 700;
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.yt-close-btn {
+    background: rgba(0,0,0,0.6);
+    border: none;
+    color: #fff;
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 50%;
+}
+.yt-close-btn:hover {
+    background: var(--netflix-red);
+}
+
+/* VIDEO */
+video {
+    width: 100%;
+    height: 70vh;
+    background: #000;
+}
+
+/* SUGGESTED */
+.suggested-row {
+    padding: 20px;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+}
+
+/* ================= BUFFER ================= */
+.buffer-overlay {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.back-pill-btn {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 10px 26px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid #111;
+    border-top-color: var(--netflix-red);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 25px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+#funny-load-text {
+    color: #888;
+    font-weight: 600;
+    text-align: center;
+    max-width: 500px;
+}
