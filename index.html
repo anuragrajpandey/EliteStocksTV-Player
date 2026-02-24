@@ -1,160 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#040404">
-    <title>EliteStocks TV | CEO Edition</title>
-
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- HLS -->
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
-    <!-- Main CSS -->
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#030303">
+  <title>EliteStocks TV · CEO Edition</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- ================= SPLASH SCREEN ================= -->
-<section id="splash-screen" class="screen flex-center">
-    <h1 class="static-logo">EliteStocks TV</h1>
-    <p class="splash-sub">CEO Edition · 2026</p>
-    <button onclick="handleLogin()" class="pill-btn-white">Get Started</button>
+<!-- ══════════════════════════════════
+     SPLASH
+══════════════════════════════════ -->
+<section id="splash" class="screen flex-center">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <h1 class="splash-logo">EliteStocks TV</h1>
+  <p class="splash-badge"><span class="bdot"></span>CEO Edition · 2026</p>
+  <button class="splash-cta" onclick="handleLogin()">
+    Get Started <i class="fa-solid fa-arrow-right"></i>
+  </button>
 </section>
 
-<!-- ================= LOADER ================= -->
-<section id="loader-screen" class="screen flex-center hidden">
-    <div class="loader-wrap">
-        <h1 class="rainbow-logo">ESTV</h1>
-        <div class="master-bar">
-            <div class="bar-fill" id="progress-fill"></div>
-        </div>
-        <p id="loader-text">ESTABLISHING LUXURY HANDSHAKE…</p>
-    </div>
+<!-- ══════════════════════════════════
+     LOADER
+══════════════════════════════════ -->
+<section id="loader" class="screen flex-center hidden">
+  <div class="loader-logo">ESTV</div>
+  <div class="loader-track">
+    <div class="loader-fill" id="ld-fill"></div>
+  </div>
+  <p class="loader-label" id="ld-text">ESTABLISHING LUXURY HANDSHAKE…</p>
 </section>
 
-<!-- ================= MAIN DASHBOARD ================= -->
-<section id="main-dashboard" class="screen hidden">
+<!-- ══════════════════════════════════
+     DASHBOARD
+══════════════════════════════════ -->
+<section id="dash" class="screen hidden">
 
-    <!-- HEADER -->
-    <header class="netflix-header">
-        <div class="header-top-row">
-            <div class="header-left">
-                <button class="icon-btn" onclick="toggleSearch()" aria-label="Search">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </button>
-
-                <nav class="netflix-nav">
-                    <button class="nav-link active" onclick="location.reload()">Home</button>
-                    <button class="nav-link" onclick="toggleCategoryPopup()">Categories</button>
-                </nav>
-            </div>
-
-            <div class="header-right">
-                <div class="brand-n">ESTV</div>
-            </div>
-        </div>
-    </header>
-
-    <!-- ================= SEARCH ================= -->
-    <div id="search-bar-wrap" class="search-overlay hidden">
-        <div class="search-inner">
-            <input
-                type="text"
-                id="search-input"
-                placeholder="Search channels…"
-                onkeyup="handleSearch()"
-                autocomplete="off"
-                spellcheck="false"
-            >
-            <button onclick="toggleSearch()" class="close-search-btn" aria-label="Close search">✕</button>
-            <div id="search-results" class="search-results-grid"></div>
-        </div>
-    </div>
-
-    <!-- ================= CONTENT ================= -->
-    <main class="netflix-content custom-scrollbar" id="scroll-area">
-
-        <!-- HERO -->
-        <section class="hero-card">
-            <div class="hero-inner">
-                <img id="hero-bg" src="" alt="" loading="lazy">
-                <div class="hero-vignette"></div>
-
-                <div class="hero-details">
-                    <div class="hero-meta">
-                        <span class="meta-tag">CEO'S CHOICE</span>
-                        <span>LIVE</span>
-                        <span>2026</span>
-                        <span class="age-tag">ELITE</span>
-                    </div>
-
-                    <h1 id="hero-title">EliteStocks TV</h1>
-                    <p id="hero-desc">Luxury streaming curated by Anurag Pandey.</p>
-
-                    <button id="hero-play-btn" class="pill-btn-white-hero">
-                        <i class="fa-solid fa-play"></i> Watch Now
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- ROWS -->
-        <div id="rows-container"></div>
-
-        <!-- INFINITE LOADER -->
-        <div id="infinite-loader" class="infinite-status">
-            <div class="dot-loader">
-                <span></span><span></span><span></span>
-            </div>
-        </div>
-    </main>
-
-    <!-- ================= CATEGORY ================= -->
-    <div id="category-popup" class="category-modal hidden" onclick="toggleCategoryPopup()">
-        <div class="category-content custom-scrollbar" onclick="event.stopPropagation()">
-            <div class="modal-header">Channel Categories</div>
-            <div id="vertical-category-list" class="vertical-list"></div>
-        </div>
-    </div>
-
-</section>
-
-<!-- ================= PLAYER ================= -->
-<div id="player-modal" class="player-overlay hidden">
-
-    <!-- BUFFER / LOADING -->
-    <div id="video-buffer-screen" class="buffer-overlay">
-        <button onclick="closePlayer()" class="back-pill-btn">
-            <i class="fa-solid fa-chevron-left"></i> Cancel
+  <header class="hdr">
+    <div class="hdr-inner">
+      <div class="hdr-left">
+        <button class="ico-btn" onclick="toggleSearch()" aria-label="Search">
+          <i class="fa-solid fa-magnifying-glass"></i>
         </button>
-        <div class="spinner"></div>
-        <p id="funny-load-text">Initializing…</p>
+        <nav class="nav">
+          <button class="nav-btn on" onclick="location.reload()">Home</button>
+          <button class="nav-btn" onclick="toggleCat()">Categories</button>
+        </nav>
+      </div>
+      <div class="brand">ESTV</div>
     </div>
+  </header>
 
-    <!-- PLAYER WRAP -->
-    <div class="netflix-player-wrap">
+  <div id="search-wrap" class="hidden">
+    <div class="search-box">
+      <input type="text" id="s-in" placeholder="Search channels…"
+             oninput="doSearch()" autocomplete="off" spellcheck="false">
+      <button class="search-close" onclick="toggleSearch()">✕</button>
+      <div id="s-grid" class="search-grid"></div>
+    </div>
+  </div>
 
-        <!-- TOP BAR -->
-        <div class="yt-top-bar">
-            <span id="yt-video-title"></span>
-            <button class="yt-close-btn" onclick="closePlayer()" aria-label="Close player">✕</button>
+  <main class="content" id="scroll-area">
+    <section class="hero">
+      <div class="hero-box">
+        <img id="hero-img" src="" alt="" loading="lazy" class="hero-img">
+        <div class="hero-vig"></div>
+        <div class="hero-body">
+          <div class="hero-tags">
+            <span class="tag-red">CEO's Choice</span>
+            <span>Live</span>
+            <span>2026</span>
+            <span class="tag-border">Elite</span>
+          </div>
+          <h1 id="hero-ttl" class="hero-title">EliteStocks TV</h1>
+          <p id="hero-dsc" class="hero-sub">Luxury streaming curated by Anurag Pandey.</p>
+          <button id="hero-btn" class="hero-play">
+            <i class="fa-solid fa-play"></i> Watch Now
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div id="rows"></div>
+
+    <div class="dots" id="dots">
+      <div class="dot-row"><span></span><span></span><span></span></div>
+    </div>
+  </main>
+
+  <div id="cat-modal" class="hidden" onclick="toggleCat()">
+    <div class="cat-box" onclick="event.stopPropagation()">
+      <div class="cat-head">Channel Categories</div>
+      <div id="cat-list"></div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════
+     PLAYER
+══════════════════════════════════ -->
+<div id="player" class="hidden">
+
+  <div id="buffer">
+    <button class="buf-back" onclick="closePlayer()">
+      <i class="fa-solid fa-chevron-left"></i> Back
+    </button>
+    <div class="ring-wrap">
+      <svg viewBox="0 0 88 88">
+        <circle class="r-bg" cx="44" cy="44" r="38"/>
+        <circle class="r-a"  cx="44" cy="44" r="38"/>
+        <circle class="r-b"  cx="44" cy="44" r="38"/>
+        <circle class="r-c"  cx="44" cy="44" r="32"/>
+      </svg>
+      <div class="ring-core"></div>
+    </div>
+    <p class="buf-msg" id="buf-msg">Initializing…</p>
+  </div>
+
+  <div class="player-wrap">
+
+    <div class="stage" id="stage">
+      <video id="vid" playsinline></video>
+
+      <div class="stage-top" id="stage-top">
+        <button class="close-btn" onclick="closePlayer()">✕</button>
+        <p class="stage-title" id="stage-ttl"></p>
+        <div class="live-chip"><span class="live-dot"></span>Live</div>
+      </div>
+
+      <div class="stage-glow"></div>
+      <div class="flash" id="flash"><i class="fa-solid fa-play"></i></div>
+
+      <div class="skip-badge left"  id="skip-l"><i class="fa-solid fa-rotate-left"></i> 10s</div>
+      <div class="skip-badge right" id="skip-r">10s <i class="fa-solid fa-rotate-right"></i></div>
+
+      <div class="ctrl" id="ctrl">
+        <div class="prog-wrap" id="prog-wrap">
+          <div class="prog-track">
+            <div class="prog-buf"  id="prog-buf"></div>
+            <div class="prog-fill" id="prog-fill"></div>
+          </div>
+          <div class="prog-thumb" id="prog-thumb"></div>
+          <div class="prog-tt"    id="prog-tt">0:00</div>
         </div>
 
-        <!-- VIDEO -->
-        <video id="video" controls autoplay playsinline></video>
-
-        <!-- SUGGESTED CHANNELS -->
-        <div id="suggested-channels" class="suggested-row"></div>
+        <div class="ctrl-row">
+          <div class="ctrl-l">
+            <button class="cb big" id="pp-btn" onclick="togglePlay()">
+              <i class="fa-solid fa-pause"></i>
+            </button>
+            <button class="cb red-hover" onclick="skipBack()">
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
+            <button class="cb red-hover" onclick="skipFwd()">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            <button class="cb" id="mute-btn" onclick="toggleMute()">
+              <i class="fa-solid fa-volume-high"></i>
+            </button>
+            <div class="vol-wrap">
+              <input type="range" class="vol-slider" id="vol-s"
+                     min="0" max="1" step="0.02" value="1"
+                     oninput="setVol(this.value)">
+            </div>
+            <span class="time-disp" id="td">0:00 / Live</span>
+          </div>
+          <div class="ctrl-r">
+            <button class="cb" onclick="togglePip()" title="Picture in Picture">
+              <i class="fa-solid fa-clone"></i>
+            </button>
+            <button class="cb" id="fs-btn" onclick="toggleFS()" title="Fullscreen">
+              <i class="fa-solid fa-expand"></i>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <div class="player-info">
+      <div class="info-l">
+        <div class="info-ch" id="info-ch">Channel</div>
+        <div class="info-meta">
+          <span id="info-grp">Category</span>
+          <span class="isep"></span>
+          <span>HD Stream</span>
+          <span class="isep"></span>
+          <span>Live</span>
+        </div>
+      </div>
+      <div class="info-r">
+        <button class="act" onclick="toggleFav()">
+          <i class="fa-regular fa-heart" id="fav-ico"></i> Favourite
+        </button>
+        <button class="act">
+          <i class="fa-solid fa-share-nodes"></i> Share
+        </button>
+      </div>
+    </div>
+
+    <div class="sug-head">Up Next</div>
+    <div class="sug-row" id="sug-row"></div>
+
+  </div>
 </div>
 
-<!-- ================= SCRIPT ================= -->
 <script src="script.js"></script>
-
 </body>
 </html>
