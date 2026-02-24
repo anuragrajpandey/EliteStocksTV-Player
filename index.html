@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#040404">
     <title>EliteStocks TV | CEO Edition</title>
 
     <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- HLS -->
@@ -20,6 +22,7 @@
 <!-- ================= SPLASH SCREEN ================= -->
 <section id="splash-screen" class="screen flex-center">
     <h1 class="static-logo">EliteStocks TV</h1>
+    <p class="splash-sub">CEO Edition · 2026</p>
     <button onclick="handleLogin()" class="pill-btn-white">Get Started</button>
 </section>
 
@@ -30,7 +33,7 @@
         <div class="master-bar">
             <div class="bar-fill" id="progress-fill"></div>
         </div>
-        <p id="loader-text">ESTABLISHING LUXURY HANDSHAKE...</p>
+        <p id="loader-text">ESTABLISHING LUXURY HANDSHAKE…</p>
     </div>
 </section>
 
@@ -41,7 +44,7 @@
     <header class="netflix-header">
         <div class="header-top-row">
             <div class="header-left">
-                <button class="icon-btn" onclick="toggleSearch()">
+                <button class="icon-btn" onclick="toggleSearch()" aria-label="Search">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
 
@@ -55,7 +58,6 @@
                 <div class="brand-n">ESTV</div>
             </div>
         </div>
-        <div class="header-divider"></div>
     </header>
 
     <!-- ================= SEARCH ================= -->
@@ -64,10 +66,12 @@
             <input
                 type="text"
                 id="search-input"
-                placeholder="Search channels..."
+                placeholder="Search channels…"
                 onkeyup="handleSearch()"
+                autocomplete="off"
+                spellcheck="false"
             >
-            <button onclick="toggleSearch()" class="close-search-btn">✕</button>
+            <button onclick="toggleSearch()" class="close-search-btn" aria-label="Close search">✕</button>
             <div id="search-results" class="search-results-grid"></div>
         </div>
     </div>
@@ -78,7 +82,7 @@
         <!-- HERO -->
         <section class="hero-card">
             <div class="hero-inner">
-                <img id="hero-bg" src="" alt="">
+                <img id="hero-bg" src="" alt="" loading="lazy">
                 <div class="hero-vignette"></div>
 
                 <div class="hero-details">
@@ -90,9 +94,7 @@
                     </div>
 
                     <h1 id="hero-title">EliteStocks TV</h1>
-                    <p id="hero-desc">
-                        Luxury streaming curated by Anurag Pandey.
-                    </p>
+                    <p id="hero-desc">Luxury streaming curated by Anurag Pandey.</p>
 
                     <button id="hero-play-btn" class="pill-btn-white-hero">
                         <i class="fa-solid fa-play"></i> Watch Now
@@ -114,9 +116,9 @@
 
     <!-- ================= CATEGORY ================= -->
     <div id="category-popup" class="category-modal hidden" onclick="toggleCategoryPopup()">
-        <div class="category-content" onclick="event.stopPropagation()">
-            <div class="modal-header">CHANNEL CATEGORIES</div>
-            <div id="vertical-category-list" class="vertical-list custom-scrollbar"></div>
+        <div class="category-content custom-scrollbar" onclick="event.stopPropagation()">
+            <div class="modal-header">Channel Categories</div>
+            <div id="vertical-category-list" class="vertical-list"></div>
         </div>
     </div>
 
@@ -131,16 +133,16 @@
             <i class="fa-solid fa-chevron-left"></i> Cancel
         </button>
         <div class="spinner"></div>
-        <p id="funny-load-text">Initializing...</p>
+        <p id="funny-load-text">Initializing…</p>
     </div>
 
     <!-- PLAYER WRAP -->
     <div class="netflix-player-wrap">
 
-        <!-- TOP BAR (YOUTUBE STYLE) -->
+        <!-- TOP BAR -->
         <div class="yt-top-bar">
             <span id="yt-video-title"></span>
-            <button class="yt-close-btn" onclick="closePlayer()">✕</button>
+            <button class="yt-close-btn" onclick="closePlayer()" aria-label="Close player">✕</button>
         </div>
 
         <!-- VIDEO -->
