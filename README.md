@@ -43,7 +43,7 @@ See the full [release notes](https://github.com/anuragrajpandey/EliteStocksTV-Pl
 | OS | Windows 10 (64-bit) or later |
 | Processor | Dual-core 2.0 GHz+ |
 | RAM | 4 GB (8 GB recommended for HD/4K streams) |
-| Storage | 200 MB free disk space |
+| Storage | 500 MB free disk space |
 | Internet | Stable broadband connection (bandwidth depends on stream quality) |
 
 ---
